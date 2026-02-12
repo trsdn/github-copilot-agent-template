@@ -27,7 +27,8 @@ Create a new custom agent profile in this repository.
    - `tools` (recommended): Explicit list of available tools (prefer minimal)
    - `target`: Set to `vscode` or `github-copilot` if restricting; omit for both
    - `model` (optional): Specific AI model to use
-   - `infer` (optional): Boolean to enable/disable use as subagent (default: true)
+   - `user-invokable` (optional): Controls visibility in agents dropdown (default: true). Set to false for subagent-only agents.
+   - `disable-model-invocation` (optional): Prevents use as subagent (default: false)
    - `argument-hint` (optional): Hint text shown in chat input field
    - `handoffs` (optional): List of suggested next actions to transition between agents
    - `mcp-servers` (optional): MCP server configs for GitHub Copilot target

@@ -4,12 +4,15 @@ These instructions are automatically applied to every Copilot Chat session in th
 
 ## Project Context
 
-This is a **GitHub Copilot Customization Blueprint** — a template repository for bootstrapping
-Copilot agents, prompt files, instructions, and skills in any project.
+<!-- TODO: Replace this section with your project's context -->
+<!-- Describe what your project does, its architecture, and key technologies -->
+
+This project uses the [Copilot Customization Starter](https://github.com/trsdn/github-copilot-agent-template)
+for pre-configured agents, prompts, skills, and CI workflows.
 
 ## Conventions
 
-- All customization files live under `.github/` (agents, prompts, skills, instructions)
+- All Copilot customization files live under `.github/` (agents, prompts, skills, instructions)
 - Use **Conventional Commits** for all commit messages: `<type>(<scope>): <description>`
 - Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
 - Agent files: `.agent.md` with YAML frontmatter (`name`, `description`, `tools` required)
@@ -18,6 +21,8 @@ Copilot agents, prompt files, instructions, and skills in any project.
 - Use `user-invokable` and `disable-model-invocation` instead of the deprecated `infer` field
 
 ## File Structure
+
+<!-- TODO: Update this to match your project's actual structure -->
 
 ```
 .github/
@@ -29,6 +34,8 @@ Copilot agents, prompt files, instructions, and skills in any project.
 ```
 
 ## Code Style
+
+<!-- TODO: Add your project's code style rules here -->
 
 - Markdown: ATX-style headings, fenced code blocks with language identifiers
 - YAML frontmatter: quote strings that contain special characters
