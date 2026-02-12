@@ -1,45 +1,43 @@
 {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "files.associations": {
-        "*.agent.md": "markdown",
-        "*.prompt.md": "markdown",
-        "SKILL.md": "markdown"
-    },
-    "files.exclude": {
-        "**/.git": true,
-        "**/.DS_Store": true
-    },
-    "markdown.validate.enabled": true,
-    "markdown.validate.fileLinks.enabled": "error",
-    "markdown.validate.referenceLinks.enabled": "error",
-    "[markdown]": {
-        "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
-        "editor.wordWrap": "on",
-        "editor.quickSuggestions": {
-            "comments": "on",
-            "strings": "on",
-            "other": "on"
-        }
-    },
-    "github.copilot.enable": {
-        "*": true,
-        "yaml": true,
-        "markdown": true
-    },
-    "github.copilot.editor.enableAutoCompletions": true,
-    "github.copilot.chat.organizationCustomAgents.enabled": true,
-    "chat.experimental.agentTools.enabled": true,
-    "search.exclude": {
-        "**/node_modules": true,
-        "**/bower_components": true,
-        "**/.git": true
-    },
-    "yaml.schemas": {
-        "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.yml",
-        "https://json.schemastore.org/github-action.json": ".github/actions/*/action.yml"
-    },
-    "yaml.customTags": [
-        "!reference sequence"
-    ]
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "files.associations": {
+    "*.agent.md": "markdown",
+    "*.prompt.md": "markdown",
+    "SKILL.md": "markdown"
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true
+  },
+  "markdown.validate.enabled": true,
+  "markdown.validate.fileLinks.enabled": "error",
+  "markdown.validate.referenceLinks.enabled": "error",
+  "[markdown]": {
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": {
+      "comments": "on",
+      "strings": "on",
+      "other": "on"
+    }
+  },
+  "github.copilot.enable": {
+    "*": true,
+    "yaml": true,
+    "markdown": true
+  },
+  "github.copilot.editor.enableAutoCompletions": true,
+  "github.copilot.chat.organizationCustomAgents.enabled": true,
+  "chat.experimental.agentTools.enabled": true,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/.git": true
+  },
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.yml",
+    "https://json.schemastore.org/github-action.json": ".github/actions/*/action.yml"
+  },
+  "yaml.customTags": ["!reference sequence"]
 }
