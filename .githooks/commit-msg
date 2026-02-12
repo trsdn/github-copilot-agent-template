@@ -1,0 +1,49 @@
+#!/bin/bash
+# Git commit-msg hook to enforce Conventional Commits
+# Install via: ./scripts/setup-hooks.sh
+
+commit_msg_file="$1"
+commit_msg=$(head -1 "$commit_msg_file")
+
+# Skip merge commits
+if echo "$commit_msg" | grep -qE "^Merge "; then
+  exit 0
+fi
+
+# Skip [skip ci] only commits
+if echo "$commit_msg" | grep -qE "^\[skip ci\]$"; then
+  exit 0
+fi
+
+# Conventional Commits pattern
+pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?(!)?: .+'
+
+if ! echo "$commit_msg" | grep -qE "$pattern"; then
+  echo ""
+  echo "❌ Commit message does not follow Conventional Commits format!"
+  echo ""
+  echo "  Your message:  $commit_msg"
+  echo ""
+  echo "  Required format: <type>(<optional scope>): <description>"
+  echo ""
+  echo "  Allowed types:"
+  echo "    feat     - A new feature"
+  echo "    fix      - A bug fix"
+  echo "    docs     - Documentation only"
+  echo "    style    - Formatting, no code change"
+  echo "    refactor - Code restructuring"
+  echo "    perf     - Performance improvement"
+  echo "    test     - Adding/updating tests"
+  echo "    build    - Build system changes"
+  echo "    ci       - CI configuration changes"
+  echo "    chore    - Maintenance tasks"
+  echo "    revert   - Reverting a previous commit"
+  echo ""
+  echo "  Examples:"
+  echo "    feat: add new copilot skill for debugging"
+  echo "    fix(agents): correct yaml frontmatter parsing"
+  echo "    docs: update contributing guidelines"
+  echo "    feat!: redesign skill format (BREAKING CHANGE)"
+  echo ""
+  exit 1
+fi

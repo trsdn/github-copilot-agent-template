@@ -1,0 +1,294 @@
+name: Create Release
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "README.md"
+      - "CONTRIBUTING.md"
+      - "CODE_OF_CONDUCT.md"
+      - "SECURITY.md"
+      - "LICENSE"
+      - ".github/ISSUE_TEMPLATE/**"
+      - ".github/PULL_REQUEST_TEMPLATE.md"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Get latest tag
+        id: get_latest_tag
+        run: |
+          # Get the latest tag, or use v0.0.0 if no tags exist
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "Latest tag: $LATEST_TAG"
+
+      - name: Determine version bump
+        id: version_bump
+        run: |
+          # Get commit messages since last tag
+          if [ "${{ steps.get_latest_tag.outputs.latest_tag }}" = "v0.0.0" ]; then
+            COMMITS=$(git log --pretty=format:"%s" main)
+          else
+            COMMITS=$(git log ${{ steps.get_latest_tag.outputs.latest_tag }}..HEAD --pretty=format:"%s")
+          fi
+
+          echo "Commits since last tag:"
+          echo "$COMMITS"
+
+          # Determine bump type based on conventional commits
+          BUMP="patch"
+
+          if echo "$COMMITS" | grep -qiE "^(feat|feature)(\(.+\))?!:|^BREAKING CHANGE:|breaking:"; then
+            BUMP="major"
+          elif echo "$COMMITS" | grep -qiE "^(feat|feature)(\(.+\))?:"; then
+            BUMP="minor"
+          fi
+
+          echo "bump=$BUMP" >> $GITHUB_OUTPUT
+          echo "Version bump type: $BUMP"
+
+      - name: Calculate new version
+        id: new_version
+        run: |
+          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
+          BUMP="${{ steps.version_bump.outputs.bump }}"
+
+          # Remove 'v' prefix if present
+          VERSION=${LATEST_TAG#v}
+
+          # Split version into parts
+          IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
+          MAJOR="${VERSION_PARTS[0]:-0}"
+          MINOR="${VERSION_PARTS[1]:-0}"
+          PATCH="${VERSION_PARTS[2]:-0}"
+
+          # Bump version
+          if [ "$BUMP" = "major" ]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif [ "$BUMP" = "minor" ]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+
+          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
+          NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
+
+          echo "# Release $NEW_VERSION" > /tmp/release_notes.md
+          echo "" >> /tmp/release_notes.md
+
+          if [ "$LATEST_TAG" = "v0.0.0" ]; then
+            echo "## Initial Release" >> /tmp/release_notes.md
+            echo "" >> /tmp/release_notes.md
+            echo "First release of the GitHub Copilot Agent blueprint repository." >> /tmp/release_notes.md
+          else
+            echo "## What's Changed" >> /tmp/release_notes.md
+            echo "" >> /tmp/release_notes.md
+            
+            # Collect commits in arrays by category
+            FEAT_COMMITS=()
+            FIX_COMMITS=()
+            DOCS_COMMITS=()
+            REFACTOR_COMMITS=()
+            TEST_COMMITS=()
+            CHORE_COMMITS=()
+            OTHER_COMMITS=()
+            
+            while IFS= read -r line; do
+              if echo "$line" | grep -qiE "^(feat|feature)(\(.+\))?:"; then
+                FEAT_COMMITS+=("$line")
+              elif echo "$line" | grep -qiE "^fix(\(.+\))?:"; then
+                FIX_COMMITS+=("$line")
+              elif echo "$line" | grep -qiE "^docs(\(.+\))?:"; then
+                DOCS_COMMITS+=("$line")
+              elif echo "$line" | grep -qiE "^refactor(\(.+\))?:"; then
+                REFACTOR_COMMITS+=("$line")
+              elif echo "$line" | grep -qiE "^test(\(.+\))?:"; then
+                TEST_COMMITS+=("$line")
+              elif echo "$line" | grep -qiE "^chore(\(.+\))?:"; then
+                CHORE_COMMITS+=("$line")
+              else
+                OTHER_COMMITS+=("$line")
+              fi
+            done < <(git log $LATEST_TAG..HEAD --pretty=format:"%s")
+            
+            # Write categorized commits
+            if [ ${#FEAT_COMMITS[@]} -gt 0 ]; then
+              echo "### ✨ Features" >> /tmp/release_notes.md
+              for commit in "${FEAT_COMMITS[@]}"; do
+                echo "- $commit" >> /tmp/release_notes.md
+              done
+              echo "" >> /tmp/release_notes.md
+            fi
+            
+            if [ ${#FIX_COMMITS[@]} -gt 0 ]; then
+              echo "### 🐛 Bug Fixes" >> /tmp/release_notes.md
+              for commit in "${FIX_COMMITS[@]}"; do
+                echo "- $commit" >> /tmp/release_notes.md
+              done
+              echo "" >> /tmp/release_notes.md
+            fi
+            
+            if [ ${#DOCS_COMMITS[@]} -gt 0 ]; then
+              echo "### 📚 Documentation" >> /tmp/release_notes.md
+              for commit in "${DOCS_COMMITS[@]}"; do
+                echo "- $commit" >> /tmp/release_notes.md
+              done
+              echo "" >> /tmp/release_notes.md
+            fi
+            
+            if [ ${#REFACTOR_COMMITS[@]} -gt 0 ]; then
+              echo "### ♻️ Refactoring" >> /tmp/release_notes.md
+              for commit in "${REFACTOR_COMMITS[@]}"; do
+                echo "- $commit" >> /tmp/release_notes.md
+              done
+              echo "" >> /tmp/release_notes.md
+            fi
+            
+            if [ ${#CHORE_COMMITS[@]} -gt 0 ]; then
+              echo "### 🔧 Maintenance" >> /tmp/release_notes.md
+              for commit in "${CHORE_COMMITS[@]}"; do
+                echo "- $commit" >> /tmp/release_notes.md
+              done
+              echo "" >> /tmp/release_notes.md
+            fi
+            
+            if [ ${#OTHER_COMMITS[@]} -gt 0 ]; then
+              echo "### Other Changes" >> /tmp/release_notes.md
+              for commit in "${OTHER_COMMITS[@]}"; do
+                echo "- $commit" >> /tmp/release_notes.md
+              done
+              echo "" >> /tmp/release_notes.md
+            fi
+          fi
+
+          # Read changelog into output
+          {
+            echo "changelog<<EOF"
+            cat /tmp/release_notes.md
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+          cat CHANGELOG.md
+
+      - name: Check if release needed
+        id: check_release
+        run: |
+          LATEST_TAG="${{ steps.get_latest_tag.outputs.latest_tag }}"
+
+          # Count commits since last tag
+          if [ "$LATEST_TAG" = "v0.0.0" ]; then
+            COMMIT_COUNT=$(git rev-list --count HEAD)
+          else
+            COMMIT_COUNT=$(git rev-list --count $LATEST_TAG..HEAD)
+          fi
+
+          echo "Commits since last release: $COMMIT_COUNT"
+
+          if [ "$COMMIT_COUNT" -eq 0 ]; then
+            echo "needs_release=false" >> $GITHUB_OUTPUT
+            echo "No new commits, skipping release"
+          else
+            echo "needs_release=true" >> $GITHUB_OUTPUT
+            echo "New commits found, creating release"
+          fi
+
+      - name: Create Release
+        if: steps.check_release.outputs.needs_release == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.new_version.outputs.new_version }}
+          name: Release ${{ steps.new_version.outputs.new_version }}
+          body: ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          prerelease: false
+
+      - name: Update CHANGELOG.md
+        if: steps.check_release.outputs.needs_release == 'true'
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
+          DATE=$(date +%Y-%m-%d)
+
+          # Create the new changelog entry from release notes
+          {
+            echo "## [$NEW_VERSION] - $DATE"
+            echo ""
+            # Extract content after the "# Release" heading from release notes
+            tail -n +3 /tmp/release_notes.md
+            echo ""
+          } > /tmp/changelog_entry.md
+
+          # Read existing CHANGELOG.md
+          if [ -f CHANGELOG.md ]; then
+            # Insert new entry after the "---" line
+            awk '/^---$/ { print; system("cat /tmp/changelog_entry.md"); next }1' CHANGELOG.md > /tmp/new_changelog.md
+            mv /tmp/new_changelog.md CHANGELOG.md
+          else
+            # Create new CHANGELOG.md if it doesn't exist
+            {
+              echo "# Changelog"
+              echo ""
+              echo "All notable changes to this project will be documented in this file."
+              echo ""
+              echo "The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),"
+              echo "and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)."
+              echo ""
+              echo "---"
+              echo ""
+              cat /tmp/changelog_entry.md
+            } > CHANGELOG.md
+          fi
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Commit and push only if there are changes
+          if git diff --quiet CHANGELOG.md; then
+            echo "No changes to CHANGELOG.md, skipping commit"
+          else
+            git add CHANGELOG.md
+            git commit -m "chore: update CHANGELOG for $NEW_VERSION [skip ci]"
+            git push origin main
+          fi
+
+      - name: Summary
+        if: steps.check_release.outputs.needs_release == 'true'
+        run: |
+          echo "## 🎉 Release Created!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: ${{ steps.new_version.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Previous**: ${{ steps.get_latest_tag.outputs.latest_tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Bump Type**: ${{ steps.version_bump.outputs.bump }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Release Notes" >> $GITHUB_STEP_SUMMARY
+          cat /tmp/release_notes.md >> $GITHUB_STEP_SUMMARY
+
+      - name: No Release Summary
+        if: steps.check_release.outputs.needs_release == 'false'
+        run: |
+          echo "## ℹ️ No Release Needed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "No new commits since last release." >> $GITHUB_STEP_SUMMARY
