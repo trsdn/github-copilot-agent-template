@@ -4,38 +4,39 @@ These instructions are automatically applied to every Copilot Chat session in th
 
 ## Project Context
 
-<!-- TODO: Replace this section with your project's context -->
-<!-- Describe what your project does, its architecture, and key technologies -->
-
-This project uses the [Copilot Customization Starter](https://github.com/trsdn/github-copilot-agent-template)
-for pre-configured agents, prompts, skills, and CI workflows.
+This is a **GitHub Copilot Customization Blueprint** — a template repository for bootstrapping
+Copilot agents, prompt files, instructions, skills, and hooks in any project.
 
 ## Conventions
 
-- All Copilot customization files live under `.github/` (agents, prompts, skills, instructions)
+- All customization files live under `.github/` (agents, prompts, skills, instructions, hooks)
 - Use **Conventional Commits** for all commit messages: `<type>(<scope>): <description>`
 - Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
-- Agent files: `.agent.md` with YAML frontmatter (`name`, `description`, `tools` required)
-- Prompt files: `.prompt.md` with YAML frontmatter (`name`, `description` required)
-- Skill files: `SKILL.md` in a named directory under `.github/skills/<name>/`
-- Use `user-invokable` and `disable-model-invocation` instead of the deprecated `infer` field
+- Agent files: `.agent.md` with YAML frontmatter (`description` required, `name` and `tools` recommended)
+- Prompt files: `.prompt.md` with YAML frontmatter (`description` recommended)
+- Skill files: `SKILL.md` in a named directory under `.github/skills/<name>/` (alt locations: `.claude/skills/`, `.agents/skills/`)
+- Hook configs: JSON files in `.github/hooks/` defining lifecycle automation
+- MCP configs: `.vscode/mcp.json` for VS Code workspace MCP, `mcp-servers` in GitHub Copilot agent frontmatter, `.mcp.json` in plugins
+- Agent plugin manifests: `plugin.json` in plugin roots; keep example manifests inert as `*.example.json`
+- Tool sets group built-in, MCP, and extension tools; keep examples inert unless deliberately enabled via VS Code
+- Use `user-invocable` and `disable-model-invocation` instead of the deprecated `infer` field
+- For multi-agent workspaces, `AGENTS.md` (root or experimental nested) and `CLAUDE.md` are also recognized as always-on instructions
+- For monorepos opened in a subfolder, enable `chat.useCustomizationsInParentRepositories` to discover customizations from the repo root
 
 ## File Structure
-
-<!-- TODO: Update this to match your project's actual structure -->
 
 ```
 .github/
 ├── agents/           # Custom agent profiles (.agent.md)
 ├── prompts/          # Prompt templates (.prompt.md)
+├── instructions/     # Scoped instruction files (*.instructions.md)
 ├── skills/           # Agent Skills (each in its own directory with SKILL.md)
+├── hooks/            # Hook configuration files (*.json)
 ├── workflows/        # GitHub Actions (release, validate, commit-lint)
 └── copilot-instructions.md  # This file
 ```
 
 ## Code Style
-
-<!-- TODO: Add your project's code style rules here -->
 
 - Markdown: ATX-style headings, fenced code blocks with language identifiers
 - YAML frontmatter: quote strings that contain special characters

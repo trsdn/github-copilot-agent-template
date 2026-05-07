@@ -1,0 +1,22 @@
+{
+  "servers": {
+    "example-local": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@example/mcp-server"],
+      "sandboxEnabled": true,
+      "sandbox": {
+        "filesystem": {
+          "allowWrite": ["${workspaceFolder}"]
+        },
+        "network": {
+          "allowedDomains": ["api.example.com"]
+        }
+      }
+    },
+    "example-remote": {
+      "type": "http",
+      "url": "https://example.com/mcp"
+    }
+  }
+}

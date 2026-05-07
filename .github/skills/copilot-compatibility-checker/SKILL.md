@@ -38,7 +38,10 @@ When diagnosing issues, consult these sources for the latest information:
 - [Custom Agents](https://code.visualstudio.com/docs/copilot/customization/custom-agents)
 - [Prompt Files](https://code.visualstudio.com/docs/copilot/customization/prompt-files)
 - [Agent Skills](https://code.visualstudio.com/docs/copilot/customization/agent-skills)
+- [Hooks](https://code.visualstudio.com/docs/copilot/customization/hooks)
+- [Agent Plugins](https://code.visualstudio.com/docs/copilot/customization/agent-plugins)
 - [MCP Servers](https://code.visualstudio.com/docs/copilot/customization/mcp-servers)
+- [MCP Configuration Reference](https://code.visualstudio.com/docs/copilot/reference/mcp-configuration)
 - [Language Models](https://code.visualstudio.com/docs/copilot/customization/language-models)
 
 ### Agents Documentation
@@ -49,7 +52,8 @@ When diagnosing issues, consult these sources for the latest information:
 
 ### Chat & Tools Documentation
 
-- [Chat Tools](https://code.visualstudio.com/docs/copilot/chat/chat-tools)
+- [Agent Tools](https://code.visualstudio.com/docs/copilot/agents/agent-tools)
+- [Tools Concepts](https://code.visualstudio.com/docs/copilot/concepts/tools)
 - [Chat Sessions](https://code.visualstudio.com/docs/copilot/chat/chat-sessions)
 - [Copilot Chat Context](https://code.visualstudio.com/docs/copilot/chat/copilot-chat-context)
 
@@ -63,6 +67,7 @@ When diagnosing issues, consult these sources for the latest information:
 
 - [GitHub Copilot Docs](https://docs.github.com/en/copilot)
 - [Custom Agents (GitHub)](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-custom-agents)
+- [Custom Agents Configuration (GitHub)](https://docs.github.com/en/copilot/reference/custom-agents-configuration)
 - [Coding Agent](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent)
 
 ### Community Resources
@@ -81,6 +86,8 @@ When diagnosing issues, consult these sources for the latest information:
 | `*.instructions.md` files | Auto-discovered in `.github/instructions/` | 1.99 | Stable |
 | `AGENTS.md` (root) | `chat.useAgentsMdFile` | 1.102 | Stable |
 | `AGENTS.md` (nested/subfolders) | `chat.useNestedAgentsMdFiles` | 1.105 | **Experimental** |
+| `CLAUDE.md` | `chat.useClaudeMdFile` | 1.105+ | Stable/compatible |
+| Parent repository discovery | `chat.useCustomizationsInParentRepositories` | 1.108+ | Stable |
 
 ### Custom Agents
 
@@ -89,16 +96,32 @@ When diagnosing issues, consult these sources for the latest information:
 | Custom agents (`.agent.md`) | Auto-discovered | 1.106 | Stable |
 | Legacy chat modes (`.chatmode.md`) | Auto-discovered (deprecated) | 1.99-1.105 | Deprecated |
 | Subagents with custom agents | `chat.customAgentInSubagent.enabled` | 1.106 | **Experimental** |
-| Organization/Enterprise agents | `github.copilot.chat.customAgents.showOrganizationAndEnterpriseAgents` | 1.107 | **Experimental** |
+| Organization custom agents | `github.copilot.chat.organizationCustomAgents.enabled` | 1.107+ | Stable/Policy controlled |
 
 ### Agent Skills
 
 | Feature | Setting | Since Version | Status |
 |---------|---------|---------------|--------|
-| Agent Skills | `chat.useAgentSkills` | 1.108 | **Preview** |
-| Project skills (`.github/skills/`) | `chat.useAgentSkills` | 1.108 | **Preview** |
-| Personal skills (`~/.copilot/skills/`) | `chat.useAgentSkills` | 1.108 | **Preview** |
-| Legacy skill locations (`.claude/skills/`) | `chat.useAgentSkills` | 1.108 | **Preview** |
+| Agent Skills | `chat.useAgentSkills` | 1.108 | Stable |
+| Project skills (`.github/skills/`) | `chat.useAgentSkills` | 1.108 | Stable |
+| Personal skills (`~/.copilot/skills/`) | `chat.useAgentSkills` | 1.108 | Stable |
+| Alt skill locations (`.agents/skills/`) | `chat.useAgentSkills` | 1.108 | Stable |
+| Custom skill locations | `chat.agentSkillsLocations` | 1.108 | Stable |
+
+### Hooks (Lifecycle Automation)
+
+| Feature | Setting | Since Version | Status |
+|---------|---------|---------------|--------|
+| Workspace hooks (`.github/hooks/`) | `chat.hookFilesLocations` | Preview | **Preview** |
+| Agent-scoped hooks (frontmatter) | `chat.useCustomAgentHooks` | Preview | **Preview** |
+
+### Agent Plugins
+
+| Feature | Setting | Since Version | Status |
+|---------|---------|---------------|--------|
+| Agent plugins | `chat.plugins.enabled` | Preview | **Preview** |
+| Plugin marketplaces | `chat.plugins.marketplaces` | Preview | **Preview** |
+| Local plugins | `chat.pluginLocations` | Preview | **Preview** |
 
 ### Prompt Files
 
@@ -112,8 +135,15 @@ When diagnosing issues, consult these sources for the latest information:
 | Feature | Setting | Since Version | Status |
 |---------|---------|---------------|--------|
 | Terminal tool auto-approval | `chat.tools.autoApprove` | 1.103 | Stable |
+| Terminal sandboxing | `chat.tools.terminal.sandbox.enabled` | Preview | **Preview** |
 | MCP servers | `chat.mcp.enabled` | 1.102 | Stable |
+| MCP access control | `chat.mcp.access` | 1.108+ | Stable/Policy controlled |
+| MCP sandbox | `sandboxEnabled` in `mcp.json` | Preview | **Preview** |
+| MCP auto-discovery | `chat.mcp.discovery.enabled` | Preview | **Preview** |
+| Tool sets | `Chat: Configure Tool Sets` | 1.108+ | Stable/Preview |
+| Organization instructions | `github.copilot.chat.organizationInstructions.enabled` | 1.108+ | Stable/Policy controlled |
 | Background agents | `chat.agent.background.enabled` | 1.107 | **Experimental** |
+| Autopilot mode | `chat.autopilot.enabled` | Preview | **Preview** |
 
 ## Diagnostic Steps
 
@@ -149,6 +179,7 @@ Check if the required files exist in the correct locations:
 | Custom agents | `.github/agents/*.agent.md` |
 | Prompt files | `.github/prompts/*.prompt.md` |
 | Agent Skills | `.github/skills/*/SKILL.md` |
+| Hook configs | `.github/hooks/*.json` |
 | AGENTS.md | Root or subfolders |
 
 ## Common Issues
@@ -182,8 +213,15 @@ Check if the required files exist in the correct locations:
 ### "Subagent can't use my custom agent"
 
 1. Enable `chat.customAgentInSubagent.enabled` (experimental)
-2. Verify the custom agent has `infer: true` (or omitted, as true is default)
+2. Verify the custom agent does not have `disable-model-invocation: true`
 3. Ensure `runSubagent` tool is available
+
+### "Hooks aren't running"
+
+1. Verify hook configuration file is valid JSON in `.github/hooks/`
+2. For agent-scoped hooks, enable `chat.useCustomAgentHooks`
+3. Check that hook scripts exist and are executable
+4. Verify the hook event name matches a valid lifecycle event
 
 ## Settings Quick Reference
 
@@ -197,7 +235,11 @@ Enable all experimental features:
   "chat.useAgentSkills": true,
   "chat.customAgentInSubagent.enabled": true,
   "chat.mcp.enabled": true,
-  "github.copilot.chat.customAgents.showOrganizationAndEnterpriseAgents": true
+  "chat.useCustomAgentHooks": true,
+  "chat.plugins.enabled": true,
+  "chat.autopilot.enabled": true,
+  "chat.mcp.discovery.enabled": true,
+  "github.copilot.chat.organizationCustomAgents.enabled": true
 }
 ```
 
@@ -205,7 +247,8 @@ Enable all experimental features:
 
 | Version | Key Features Added |
 |---------|-------------------|
-| 1.108 | Agent Skills (preview) |
+| Preview | Hooks (lifecycle automation), Agent plugins |
+| 1.108 | Agent Skills |
 | 1.107 | Background agents (experimental), org/enterprise agents |
 | 1.106 | Custom agents (renamed from chat modes) |
 | 1.105 | Nested AGENTS.md (experimental) |

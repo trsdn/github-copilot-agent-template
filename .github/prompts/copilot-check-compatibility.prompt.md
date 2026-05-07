@@ -25,7 +25,7 @@ Diagnose feature availability and troubleshoot Copilot customization issues.
 
 When diagnosing, fetch these sources as needed:
 
-- **Release Notes**: `https://code.visualstudio.com/updates/v1_XXX` (replace XXX with version)
+- **Release Notes**: use `https://code.visualstudio.com/updates/v1_108` as the pattern and replace the version as needed
 - **Custom Instructions**: https://code.visualstudio.com/docs/copilot/customization/custom-instructions
 - **Custom Agents**: https://code.visualstudio.com/docs/copilot/customization/custom-agents
 - **Agent Skills**: https://code.visualstudio.com/docs/copilot/customization/agent-skills
@@ -40,7 +40,7 @@ When diagnosing, fetch these sources as needed:
 | Agent Skills | `chat.useAgentSkills: true` |
 | Nested AGENTS.md | `chat.useNestedAgentsMdFiles: true` |
 | Subagents with custom agents | `chat.customAgentInSubagent.enabled: true` |
-| Org/Enterprise agents | `github.copilot.chat.customAgents.showOrganizationAndEnterpriseAgents: true` |
+| Org/Enterprise agents | `github.copilot.chat.organizationCustomAgents.enabled: true` |
 | Background agents | `chat.agent.background.enabled: true` |
 
 ### Stable Features (usually enabled by default)

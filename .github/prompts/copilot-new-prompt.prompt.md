@@ -28,7 +28,7 @@ Create a new reusable prompt file in `.github/prompts/`.
    - `description` (optional): Short description of the prompt
    - `name` (optional): Display name after typing `/` in chat (defaults to filename)
    - `agent` (optional): Agent for running the prompt (`ask`, `edit`, `agent`, or custom agent name)
-   - `tools` (optional): List of available tools (can use `<server>/*` for all MCP tools)
+   - `tools` (optional): List of available tools, tool sets, or MCP tools (can use `<server>/<tool>` or `<server>/*`)
    - `model` (optional): Specific AI model to use
    - `argument-hint` (optional): Hint text shown in chat input field
 4. In the prompt body:
@@ -55,6 +55,8 @@ Tools are resolved in this order:
 2. Tools from the referenced custom agent
 3. Default tools for the selected agent
 
+Use tool sets when a prompt repeatedly needs the same group of built-in, MCP, or extension tools. Prefer explicit MCP tool names over full server wildcards unless the prompt genuinely needs the whole server.
+
 When done, explain:
 - How to invoke it with `/${input:promptSlug}`
 - How to run with the editor play button for testing
@@ -66,7 +68,8 @@ When done, explain:
 - Customize chat overview (VS Code): https://code.visualstudio.com/docs/copilot/customization/overview
 - Copilot Chat context (VS Code): https://code.visualstudio.com/docs/copilot/chat/copilot-chat-context
 - Chat sessions (VS Code): https://code.visualstudio.com/docs/copilot/chat/chat-sessions
-- Tools in chat (VS Code): https://code.visualstudio.com/docs/copilot/chat/chat-tools
+- Agent tools & approvals (VS Code): https://code.visualstudio.com/docs/copilot/agents/agent-tools
+- MCP servers (VS Code): https://code.visualstudio.com/docs/copilot/customization/mcp-servers
 - Prompt engineering guide: https://code.visualstudio.com/docs/copilot/guides/prompt-engineering-guide
 - Context engineering guide: https://code.visualstudio.com/docs/copilot/guides/context-engineering-guide
 - Awesome Copilot examples: https://github.com/github/awesome-copilot
