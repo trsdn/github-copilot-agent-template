@@ -11,7 +11,7 @@ Analyze this repository's GitHub Copilot customization and provide recommendatio
 
 ## Audit Scope
 
-Focus area (optional): `${input:focusArea:Leave empty for full audit, or specify: instructions, agents, prompts, skills, settings}`
+Focus area (optional): `${input:focusArea:Leave empty for full audit, or specify: instructions, agents, prompts, skills, hooks, MCP, plugins, toolsets, org, settings}`
 
 ## Audit Workflow
 
@@ -23,6 +23,7 @@ Check for existence and content of:
    - `.github/copilot-instructions.md`
    - `.github/instructions/*.instructions.md`
    - `AGENTS.md` (root and subfolders)
+   - `CLAUDE.md` and `.claude/rules/*.md` when present
 
 2. **Custom Agents**
    - `.github/agents/*.agent.md`
@@ -34,7 +35,21 @@ Check for existence and content of:
 4. **Agent Skills**
    - `.github/skills/*/SKILL.md`
 
-5. **Settings**
+5. **Hooks**
+   - `.github/hooks/*.json`
+   - Inert examples such as `.github/hooks/*.json.example`
+
+6. **MCP**
+   - `.vscode/mcp.json`
+   - `.vscode/mcp.example.json`
+   - Agent frontmatter `mcp-servers`
+   - Plugin `.mcp.json` / `mcpServers`
+
+7. **Agent Plugins and Tool Sets**
+   - `plugin.json` / `plugin.example.json`
+   - `.github/toolsets/*.jsonc`
+
+8. **Settings**
    - `.vscode/settings.json`
 
 ### Step 2: Validate Existing Files
@@ -52,6 +67,10 @@ Based on project type, suggest missing customizations:
 - Common workflow agents
 - Repetitive task prompts
 - Project knowledge skills
+- MCP integrations for trusted external tools/data
+- Tool sets for repeated tool bundles
+- Agent plugins when a workflow should be packaged/distributed
+- Organization/enterprise defaults vs repository overrides
 
 ### Step 4: Generate Report
 

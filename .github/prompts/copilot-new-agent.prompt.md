@@ -25,12 +25,14 @@ Create a new custom agent profile in this repository.
    - `description` (required): Brief description shown as placeholder text in chat input
    - `name` (recommended): Display name (defaults to filename if omitted)
    - `tools` (recommended): Explicit list of available tools (prefer minimal)
+       - Can include built-in tools, tool aliases, extension tools, tool sets, or MCP tools (`<server>/<tool>`, `<server>/*`)
    - `target`: Set to `vscode` or `github-copilot` if restricting; omit for both
-   - `model` (optional): Specific AI model to use
-   - `user-invokable` (optional): Controls visibility in agents dropdown (default: true). Set to false for subagent-only agents.
-   - `disable-model-invocation` (optional): Prevents use as subagent (default: false)
+   - `model` (optional): Specific AI model or prioritized array of models
+   - `user-invocable` (optional): Boolean to control agents dropdown visibility (default: true)
+   - `disable-model-invocation` (optional): Boolean to prevent subagent invocation (default: false)
    - `argument-hint` (optional): Hint text shown in chat input field
    - `handoffs` (optional): List of suggested next actions to transition between agents
+   - `hooks` (optional, preview): Lifecycle hooks scoped to this agent
    - `mcp-servers` (optional): MCP server configs for GitHub Copilot target
 4. In the Markdown body, include:
    - What the agent does
@@ -55,8 +57,18 @@ handoffs:
 - `agent`: Target agent identifier
 - `prompt`: Text to send to target agent
 - `send`: Auto-submit prompt if true (default: false)
+- `model`: Optional model override for the handoff target
+
+## MCP and tool guidance
+
+- For VS Code-only agents, configure MCP servers in `.vscode/mcp.json`, not agent frontmatter.
+- For GitHub Copilot cloud agents, use `mcp-servers` in frontmatter and reference tools in `tools`.
+- Prefer specific MCP tools (`server/tool-name`) over full server wildcards (`server/*`).
+- Use tool sets for reusable groups of built-in, MCP, and extension tools when the same capability bundle is reused.
 
 When done, list the created file path and how to select the agent in the VS Code agents dropdown.
+
+> **Deprecated:** `infer` is deprecated. Use `user-invocable` and `disable-model-invocation` instead.
 
 ## Reference docs
 
@@ -64,8 +76,10 @@ When done, list the created file path and how to select the agent in the VS Code
 - Agents overview (local/background/cloud): https://code.visualstudio.com/docs/copilot/agents/overview
 - Background agents: https://code.visualstudio.com/docs/copilot/agents/background-agents
 - Cloud agents: https://code.visualstudio.com/docs/copilot/agents/cloud-agents
-- Tools & approvals (VS Code): https://code.visualstudio.com/docs/copilot/chat/chat-tools
+- Agent tools & approvals (VS Code): https://code.visualstudio.com/docs/copilot/agents/agent-tools
+- MCP servers (VS Code): https://code.visualstudio.com/docs/copilot/customization/mcp-servers
 - Security considerations (VS Code): https://code.visualstudio.com/docs/copilot/security
+- Hooks (VS Code): https://code.visualstudio.com/docs/copilot/customization/hooks
 - Awesome Copilot examples: https://github.com/github/awesome-copilot
 
 GitHub Copilot (cloud) custom agents:

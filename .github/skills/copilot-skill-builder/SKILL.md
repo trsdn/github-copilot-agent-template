@@ -22,8 +22,6 @@ Agent Skills are folders containing a `SKILL.md` file plus optional scripts, exa
 |------|----------|----------|
 | Project skills | `.github/skills/<skill-name>/` | Shared with the repository |
 | Personal skills | `~/.copilot/skills/<skill-name>/` | Private to your machine |
-| Legacy project | `.claude/skills/<skill-name>/` | Backward compatibility |
-| Legacy personal | `~/.claude/skills/<skill-name>/` | Backward compatibility |
 
 ## SKILL.md file format
 
@@ -44,8 +42,15 @@ Detailed instructions, guidelines, and examples...
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `name` | Yes | Unique identifier. Lowercase, hyphens for spaces, max 64 chars (e.g., `webapp-testing`) |
+| `name` | Yes | Unique identifier. Lowercase, hyphens for spaces, max 64 chars. Must match parent directory name |
 | `description` | Yes | What the skill does and when to use it. Be specific to help Copilot decide when to load. Max 1024 chars |
+| `argument-hint` | No | Hint text shown in chat input when invoked as a slash command |
+| `user-invocable` | No | Controls `/` slash command visibility (default: `true`). Set to `false` for background skills |
+| `disable-model-invocation` | No | Controls auto-loading by Copilot (default: `false`). Set to `true` for manual-only skills |
+| `license` | No | License name or reference to a bundled license file (from [agentskills.io](https://agentskills.io/) spec) |
+| `compatibility` | No | Environment requirements — intended product, system packages, network access. Max 500 chars |
+| `metadata` | No | Arbitrary key-value mapping for additional metadata (e.g., `author`, `version`) |
+| `allowed-tools` | No | Space-delimited list of pre-approved tools the skill may use (experimental) |
 
 ### Body content
 
@@ -121,13 +126,35 @@ The description determines when Copilot loads your skill. Be specific:
 ```
 .github/skills/
 └── webapp-testing/
-    ├── SKILL.md              # Main skill file
-    ├── test-template.js      # Reusable test template
-    ├── playwright.config.ts  # Example config
+    ├── SKILL.md              # Main skill file (required)
+    ├── scripts/              # Executable code agents can run
+    │   └── test-template.js
+    ├── references/           # Additional documentation
+    │   └── REFERENCE.md
+    ├── assets/               # Static resources (templates, schemas)
+    │   └── config-template.json
     └── examples/
         ├── login-test.js
         └── api-test.js
 ```
+
+### Recommended directories (from agentskills.io spec)
+
+| Directory | Purpose |
+|-----------|---------|
+| `scripts/` | Executable code (Python, Bash, JavaScript). Should be self-contained with helpful error messages |
+| `references/` | Additional documentation loaded on demand (keep files focused for efficient context use) |
+| `assets/` | Static resources: templates, images, data files, schemas |
+
+### Progressive disclosure guidelines
+
+Skills load progressively to minimize context usage:
+
+1. **Metadata** (~100 tokens): `name` and `description` loaded at startup for all skills
+2. **Instructions** (< 5000 tokens recommended): Full SKILL.md body loaded when activated
+3. **Resources** (as needed): Files in `scripts/`, `references/`, `assets/` loaded only when required
+
+Keep your main SKILL.md under **500 lines**. Move detailed reference material to separate files.
 
 ## Reference documentation
 

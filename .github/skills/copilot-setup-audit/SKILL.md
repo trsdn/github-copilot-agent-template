@@ -31,10 +31,17 @@ Check for correct directory structure:
 │   └── *.instructions.md
 ├── skills/                    # Agent skills
 │   └── */SKILL.md
+├── hooks/                     # Hook configurations
+│   └── *.json
+├── plugin/                    # Inert plugin manifest examples
+│   └── *.example.json
+├── toolsets/                  # Inert tool-set examples
+│   └── *.example.jsonc
 ├── copilot-instructions.md    # Workspace-wide instructions
 └── (optional) AGENTS.md       # Alternative: root-level agent instructions
 .vscode/
-└── settings.json              # Workspace settings
+├── settings.json              # Workspace settings
+└── mcp.example.json            # Inert MCP example (copy to mcp.json to enable)
 ```
 
 #### Directory Checks
@@ -46,7 +53,10 @@ Check for correct directory structure:
 | `.github/prompts/` exists | | Required for prompt templates |
 | `.github/instructions/` exists | | Recommended for scoped instructions |
 | `.github/skills/` exists | | Optional, for Agent Skills |
+| `.github/hooks/` exists | | Optional, for lifecycle automation |
+| `.github/toolsets/` exists | | Optional, for tool-set examples |
 | `.vscode/` exists | | Recommended for workspace settings |
+| `.vscode/mcp.example.json` exists | | Recommended inert MCP example |
 
 ### 2. Custom Instructions
 
@@ -56,7 +66,10 @@ Check for correct directory structure:
 |------|---------|----------|
 | `.github/copilot-instructions.md` | Workspace-wide coding guidelines | **High** |
 | `.github/instructions/*.instructions.md` | File-type specific rules | Medium |
-| `AGENTS.md` (root) | Multi-agent workspace instructions | Optional |
+| `AGENTS.md` (root) | Multi-agent workspace instructions (`chat.useAgentsMdFile`) | Optional |
+| `AGENTS.md` (nested in subfolders) | Folder-scoped instructions (`chat.useNestedAgentsMdFiles`, experimental) | Optional |
+| `CLAUDE.md` (root, `.claude/CLAUDE.md`, or `~/.claude/CLAUDE.md`) | Claude-compatible always-on instructions (`chat.useClaudeMdFile`) | Optional |
+| `.claude/rules/*.md` | Claude Rules format (uses `paths` instead of `applyTo`) | Optional |
 
 #### Instruction Quality Checks
 
@@ -89,6 +102,7 @@ Check for correct directory structure:
 - [ ] `name` is set (recommended)
 - [ ] `tools` list is explicit (avoid giving all tools)
 - [ ] No deprecated `.chatmode.md` files exist
+- [ ] Uses `user-invocable` / `disable-model-invocation` instead of deprecated `infer`
 
 #### Recommended Agents
 
@@ -106,8 +120,12 @@ Consider creating agents for these common workflows:
 
 - [ ] Agents have clear, focused purposes
 - [ ] Tool lists are minimal and intentional
+- [ ] Tool lists can include built-ins, aliases, MCP tools (`server/tool`), or MCP server wildcards (`server/*`) intentionally
 - [ ] Handoffs defined for workflow agents
-- [ ] `infer: false` set for agents that shouldn't be used as subagents
+- [ ] `user-invocable: false` set for subagent-only agents
+- [ ] `disable-model-invocation: true` set for agents that shouldn't be auto-invoked
+- [ ] `model` specified where appropriate (can be array for fallback)
+- [ ] `mcp-servers` used only for GitHub Copilot cloud-agent scenarios or explicitly cross-environment agents
 
 ### 4. Prompt Files
 
@@ -140,10 +158,13 @@ Consider creating prompts for repetitive tasks:
 #### Skill Checks
 
 - [ ] Skills use `SKILL.md` filename
-- [ ] Skills are in `.github/skills/<name>/` directories
-- [ ] YAML frontmatter has `name` and `description`
-- [ ] Description is specific (helps Copilot decide when to load)
-- [ ] Supporting files are referenced with relative paths
+- [ ] Skills live in a recognized project location: `.github/skills/<name>/`, `.claude/skills/<name>/`, or `.agents/skills/<name>/`
+- [ ] Skill `name` matches the parent directory name (otherwise the skill silently fails to load)
+- [ ] `name` uses only lowercase letters, numbers, and hyphens (no slashes, colons, dots, or namespace prefixes); max 64 chars
+- [ ] `description` is present and specific (helps Copilot decide when to load); max 1024 chars
+- [ ] Supporting files are referenced with relative paths (`./scripts/foo.sh`)
+- [ ] `user-invocable` / `disable-model-invocation` configured appropriately
+- [ ] For monorepos: `chat.useCustomizationsInParentRepositories` enabled if customizations live in the parent repo
 
 #### Recommended Skills
 
@@ -157,7 +178,90 @@ Consider creating skills for:
 | Troubleshooting | Common issues and solutions |
 | Testing strategies | Project-specific test patterns |
 
-### 6. Settings Configuration
+### 6. Hooks (Lifecycle Automation)
+
+#### Hook File Checks
+
+- [ ] Hook configs are valid JSON in `.github/hooks/` directory
+- [ ] Each hook entry has `type: "command"` and a `command` field
+- [ ] Hook scripts exist and are executable
+- [ ] Timeouts are set appropriately (default: 30s)
+- [ ] `Stop` hooks check `stop_hook_active` to prevent infinite loops
+- [ ] Agent-scoped hooks use `chat.useCustomAgentHooks` setting
+
+#### Recommended Hooks
+
+| Hook Event | Purpose | Example |
+|------------|---------|---------|
+| `PreToolUse` | Block dangerous commands | Security policy enforcement |
+| `PostToolUse` | Auto-format after edits | Run Prettier/ESLint after file changes |
+| `SessionStart` | Inject project context | Add environment info to session |
+| `Stop` | Enforce quality gates | Require test runs before finishing |
+
+#### Hook configuration locations
+
+| Location | Scope |
+|----------|-------|
+| `.github/hooks/*.json` | Workspace (shared with team) |
+| Agent frontmatter `hooks:` | Agent-scoped (preview) |
+
+### 7. MCP Servers
+
+#### MCP File Checks
+
+- [ ] `.vscode/mcp.example.json` exists as an inert example if the repo teaches MCP setup
+- [ ] Active `.vscode/mcp.json` exists only when the team intentionally enables workspace MCP servers
+- [ ] MCP server names are stable and match tool references in agents/prompts/tool sets
+- [ ] No secrets are committed in `mcp.json`, `.mcp.json`, or agent `mcp-servers`
+- [ ] Local stdio servers are reviewed for arbitrary code execution risk
+- [ ] `sandboxEnabled: true` considered for local stdio MCP servers on macOS/Linux
+- [ ] Tool exposure follows least privilege (`server/tool` preferred over `server/*`)
+- [ ] Plugin MCP configs use top-level `mcpServers`; VS Code workspace configs use top-level `servers`
+
+#### MCP Locations
+
+| Location | Scope | Top-level key |
+|----------|-------|---------------|
+| `.vscode/mcp.json` | VS Code workspace | `servers` |
+| User profile MCP config | VS Code user/profile | `servers` |
+| `.github/agents/*.agent.md` `mcp-servers` | GitHub Copilot cloud agent | YAML `mcp-servers` |
+| Plugin `.mcp.json` | Agent plugin | `mcpServers` |
+
+### 8. Tool Sets
+
+#### Tool Set Checks
+
+- [ ] Tool-set examples are inert unless intentionally enabled
+- [ ] Tool sets group related built-in, MCP, or extension tools by workflow
+- [ ] Read-only workflows avoid edit/terminal tools unless needed
+- [ ] MCP tool sets use explicit tools where practical instead of full server wildcards
+- [ ] Tool-set descriptions explain when to use the group
+- [ ] Tool count stays under practical request limits
+
+### 9. Agent Plugins (Preview)
+
+#### Plugin Checks
+
+- [ ] Plugin examples are inert (`plugin.example.json`) unless intentionally enabled
+- [ ] `plugin.json` names are kebab-case, max 64 chars, no slashes/colons/namespace prefixes
+- [ ] Plugin manifests declare only the components that exist (`skills`, `agents`, `hooks`, `mcpServers`)
+- [ ] Plugin hooks and MCP servers are reviewed because they can run local code
+- [ ] Plugin MCP uses top-level `mcpServers`, not workspace-style `servers`
+- [ ] Workspace plugin recommendations use approved marketplaces and enabled plugins only
+- [ ] `chat.plugins.enabled` and marketplace settings are intentional
+
+### 10. Organization and Enterprise Customizations
+
+#### Org/Enterprise Checks
+
+- [ ] Repository files are treated as local overrides for org/enterprise defaults
+- [ ] Organization instructions are enabled only when desired (`github.copilot.chat.organizationInstructions.enabled`)
+- [ ] Organization custom agents are enabled only when desired (`github.copilot.chat.organizationCustomAgents.enabled`)
+- [ ] Naming conflicts are intentional; lower-level agents override higher-level agents
+- [ ] `.github-private` organization/enterprise custom-agent repositories are documented when used
+- [ ] Central policies for MCP access, tool approval, and plugin marketplaces are understood
+
+### 11. Settings Configuration
 
 #### Workspace Settings (.vscode/settings.json)
 
@@ -171,15 +275,25 @@ Check for recommended settings:
   // Enable AGENTS.md support
   "chat.useAgentsMdFile": true,
   
-  // Enable Agent Skills (preview)
+  // Enable Agent Skills
   "chat.useAgentSkills": true,
   
   // Enable MCP servers
   "chat.mcp.enabled": true,
+  "chat.mcp.access": "all",
+  "github.copilot.chat.organizationInstructions.enabled": true,
+  "github.copilot.chat.organizationCustomAgents.enabled": true,
   
-  // Optional experimental features
+  // Optional experimental/preview features
   "chat.useNestedAgentsMdFiles": true,
-  "chat.customAgentInSubagent.enabled": true
+  "chat.useClaudeMdFile": true,
+  "chat.useCustomizationsInParentRepositories": true,
+  "chat.customAgentInSubagent.enabled": true,
+  "chat.useCustomAgentHooks": true,
+  "chat.plugins.enabled": true,
+  "chat.plugins.marketplaces": ["github/awesome-copilot"],
+  "chat.autopilot.enabled": true,
+  "chat.mcp.discovery.enabled": true
 }
 ```
 
@@ -190,7 +304,7 @@ Check for recommended settings:
 - [ ] No conflicting or deprecated settings
 - [ ] Settings committed to repo (shared with team)
 
-### 7. Legacy/Deprecated Patterns
+### 12. Legacy/Deprecated Patterns
 
 #### Files to migrate or remove
 
@@ -198,8 +312,6 @@ Check for recommended settings:
 |------------|------------|
 | `.github/chatmodes/*.chatmode.md` | `.github/agents/*.agent.md` |
 | `*.instructions.md` at repo root | `.github/instructions/*.instructions.md` |
-| `.claude/skills/` | `.github/skills/` (recommended) |
-| `~/.claude/skills/` | `~/.copilot/skills/` (recommended) |
 
 #### Deprecated Settings
 
@@ -208,14 +320,19 @@ Check for recommended settings:
 | `github.copilot.chat.codeGeneration.instructions` | `.github/copilot-instructions.md` |
 | `github.copilot.chat.testGeneration.instructions` | `*.instructions.md` with `applyTo` |
 
-### 8. Security & Best Practices
+### 13. Security & Best Practices
 
 #### Security Checks
 
 - [ ] No sensitive data in instruction files
 - [ ] Terminal commands in prompts are safe and scoped
 - [ ] MCP server configurations are reviewed
+- [ ] MCP servers avoid committed secrets and use input variables, env files, or Copilot environment secrets
+- [ ] Tool sets do not accidentally enable broad write/terminal/server access
 - [ ] Shared skills are audited before use
+- [ ] Hook scripts are reviewed for security implications
+- [ ] Agent plugins are audited before installation
+- [ ] Plugin marketplaces and local plugin paths are trusted
 
 #### Version Control
 
@@ -241,6 +358,11 @@ Check for recommended settings:
 | Custom Agents | ✅/⚠️/❌ | X/Y |
 | Prompt Files | ✅/⚠️/❌ | X/Y |
 | Agent Skills | ✅/⚠️/❌ | X/Y |
+| Hooks | ✅/⚠️/❌ | X/Y |
+| MCP Servers | ✅/⚠️/❌ | X/Y |
+| Tool Sets | ✅/⚠️/❌ | X/Y |
+| Agent Plugins | ✅/⚠️/❌ | X/Y |
+| Org/Enterprise | ✅/⚠️/❌ | X/Y |
 | Settings | ✅/⚠️/❌ | X/Y |
 | Legacy Patterns | ✅/⚠️/❌ | X/Y |
 | Security | ✅/⚠️/❌ | X/Y |
@@ -280,4 +402,10 @@ Check for recommended settings:
 - [Custom Agents](https://code.visualstudio.com/docs/copilot/customization/custom-agents)
 - [Prompt Files](https://code.visualstudio.com/docs/copilot/customization/prompt-files)
 - [Agent Skills](https://code.visualstudio.com/docs/copilot/customization/agent-skills)
+- [Hooks](https://code.visualstudio.com/docs/copilot/customization/hooks)
+- [Agent Plugins](https://code.visualstudio.com/docs/copilot/customization/agent-plugins)
+- [MCP Servers](https://code.visualstudio.com/docs/copilot/customization/mcp-servers)
+- [MCP Configuration Reference](https://code.visualstudio.com/docs/copilot/reference/mcp-configuration)
+- [Agent Tools and Tool Sets](https://code.visualstudio.com/docs/copilot/agents/agent-tools)
+- [Custom Agents Configuration (GitHub)](https://docs.github.com/en/copilot/reference/custom-agents-configuration)
 - [Awesome Copilot](https://github.com/github/awesome-copilot)

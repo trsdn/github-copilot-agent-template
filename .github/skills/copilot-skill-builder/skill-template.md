@@ -1,6 +1,15 @@
 ---
 name: {{skill-name}}
 description: {{skill-description}}
+# argument-hint: {{optional hint text for slash command}}
+# user-invocable: true
+# disable-model-invocation: false
+# license: {{optional license name or file reference}}
+# compatibility: {{optional environment requirements}}
+# metadata:
+#   author: {{optional author}}
+#   version: "1.0"
+# allowed-tools: {{optional space-delimited list of pre-approved tools (experimental)}}
 ---
 
 # {{Skill Title}}
